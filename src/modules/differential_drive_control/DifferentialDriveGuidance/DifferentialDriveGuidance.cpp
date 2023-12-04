@@ -30,7 +30,7 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 			true,
 			_param_rdc_p_gain_waypoint_controller.get(),
 			_param_rdc_d_gain_waypoint_controller.get(),
-			_param_rdc_i_gain_waypoint_controller.get()); /*+ _yaw_rate_align_pid.pid(align_error, 0, _dt, 200, max_angular_velocity, true, 0.0, 0.0, 0.0);*/
+			_param_rdc_i_gain_waypoint_controller.get());
 
 	float desired_linear_velocity = max_forwards_velocity;
 
@@ -72,7 +72,6 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 float DifferentialDriveGuidance::computeAdvancedBearing(const matrix::Vector2f &current_pos,
 		const matrix::Vector2f &waypoint, const matrix::Vector2f &previous_waypoint)
 {
-
 	matrix::Vector2f wanted_path = waypoint - previous_waypoint;
 	matrix::Vector2f current_path = current_pos - previous_waypoint;
 
@@ -83,12 +82,10 @@ float DifferentialDriveGuidance::computeAdvancedBearing(const matrix::Vector2f &
 	wanted_path_normalized.normalize();
 	current_path_normalized.normalize();
 
-	float dot = wanted_path_normalized.dot(current_path_normalized);
-	float theta = acos(dot);
+	float path_dot_product = wanted_path_normalized.dot(current_path_normalized);
+	float theta = acos(path_dot_product);
 
-	matrix::Vector2f p1 = wanted_path_normalized * cos(theta) * current_path.norm() + previous_waypoint;
-	matrix::Vector2f v1 = current_pos - p1;
-	matrix::Vector2f new_waypoint = -v1 + waypoint;
+	matrix::Vector2f new_waypoint = waypoint - (current_pos - (wanted_path_normalized * cos(theta) * current_path.norm() + previous_waypoint));
 
 	return computeBearing(current_pos, new_waypoint);
 }
@@ -102,10 +99,9 @@ float DifferentialDriveGuidance::computeBearing(const matrix::Vector2f &current_
 
 float DifferentialDriveGuidance::normalizeAngle(float angle)
 {
-	// wtf, i hope no one sees this for now lol
-	while (angle > (float)M_PI) { angle -= (float)2.0 * (float)M_PI; }
+	while (angle > M_PIf) { angle -= 2.0f * M_PIf; }
 
-	while (angle < -(float)M_PI) { angle += (float)2.0 * (float)M_PI; }
+	while (angle < -M_PIf) { angle += 2.0f * M_PIf; }
 
 	return angle;
 }
