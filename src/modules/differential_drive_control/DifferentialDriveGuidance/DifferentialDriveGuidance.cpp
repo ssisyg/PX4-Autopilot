@@ -85,7 +85,8 @@ float DifferentialDriveGuidance::computeAdvancedBearing(const matrix::Vector2f &
 	float path_dot_product = wanted_path_normalized.dot(current_path_normalized);
 	float theta = acos(path_dot_product);
 
-	matrix::Vector2f new_waypoint = waypoint - (current_pos - (wanted_path_normalized * cos(theta) * current_path.norm() + previous_waypoint));
+	matrix::Vector2f new_waypoint = waypoint - (current_pos - (wanted_path_normalized * cos(
+						theta) * current_path.norm() + previous_waypoint));
 
 	return computeBearing(current_pos, new_waypoint);
 }
