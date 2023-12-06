@@ -52,4 +52,43 @@ parameters:
         max: 100
         increment: 0.01
         decimal: 2
-        default: 10
+        default: 0.3
+      RDD_P_GAIN_GUIDE:
+        description:
+          short: Proportional gain for guidance
+        type: float
+        min: 0
+        max: 100
+        increment: 0.01
+        decimal: 2
+        default: 1.0
+      RDD_I_GAIN_GUIDE:
+        description:
+          short: Integral gain for guidance
+        type: float
+        min: 0
+        max: 100
+        increment: 0.01
+        decimal: 2
+        default: 0.0
+      RDD_D_GAIN_GUIDE:
+        description:
+          short: Derivative gain for guidance
+        type: float
+        min: 0
+        max: 100
+        increment: 0.01
+        decimal: 2
+        default: 0.0
+      RDD_VEL_ALGN:
+        description:
+          short: Velocity alignment
+          long: Velocity alignment is used to adjust the rovers velocity depending on the angle between the rover and the target
+        type: float
+        unit: rad/s
+        min: 0
+        max: 100
+        increment: 0.01
+        decimal: 2
+        default: 0.1
+

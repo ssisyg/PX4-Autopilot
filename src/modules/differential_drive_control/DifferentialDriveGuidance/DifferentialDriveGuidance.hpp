@@ -43,19 +43,19 @@
 #include <lib/motion_planning/PositionSmoothing.hpp>
 #include <lib/motion_planning/VelocitySmoothing.hpp>
 
-#include "rover_drive_control_pid.hpp"
+// #include "rover_drive_control_pid.hpp"
+#include <lib/pid/pid.h>
 
 
 
 class DifferentialDriveGuidance : public ModuleParams
 {
 public:
-	DifferentialDriveGuidance(ModuleParams *parent) : ModuleParams(parent) {};
+	DifferentialDriveGuidance(ModuleParams *parent);
 	~DifferentialDriveGuidance() = default;
 
 	matrix::Vector2f 	computeGuidance(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint,
-						const matrix::Vector2f &previous_waypoint, const matrix::Vector2f &next_waypoint, float vehicle_yaw, float dt,
-						float max_forwards_velocity, float max_angular_velocity);
+						const matrix::Vector2f &previous_waypoint, const matrix::Vector2f &next_waypoint, float vehicle_yaw, float dt);
 	float 	computeAdvancedBearing(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint,
 				       const matrix::Vector2f &previous_waypoint);
 	float 	computeBearing(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint);
@@ -80,19 +80,23 @@ private:
 	VelocitySmoothing _forwards_velocity_smoothing;
 	PositionSmoothing _position_smoothing;
 
-	rover_drive_control_pid 		_yaw_rate_point_pid;
-	rover_drive_control_pid 		_yaw_rate_align_pid;
-	rover_drive_control_pid 		_speed_control_pid;
+	// rover_drive_control_pid 		_yaw_rate_point_pid;
+	// rover_drive_control_pid 		_yaw_rate_align_pid;
+	// rover_drive_control_pid 		_speed_control_pid;
+
+	PID_t yaw_rate_pid;
 
 	DEFINE_PARAMETERS(
-		(ParamFloat<px4::params::RDC_P_GAIN_WC>) _param_rdc_p_gain_waypoint_controller,
-		(ParamFloat<px4::params::RDC_I_GAIN_WC>) _param_rdc_d_gain_waypoint_controller,
-		(ParamFloat<px4::params::RDC_D_GAIN_WC>) _param_rdc_i_gain_waypoint_controller,
+		(ParamFloat<px4::params::RDD_MAX_SPEED>) _param_rdd_max_speed,
+		(ParamFloat<px4::params::RDD_MAX_ANG_VEL>) _param_rdd_max_angular_velocity,
+		(ParamFloat<px4::params::RDD_P_GAIN_GUIDE>) _param_rdc_p_gain_waypoint_controller,
+		(ParamFloat<px4::params::RDD_I_GAIN_GUIDE>) _param_rdc_d_gain_waypoint_controller,
+		(ParamFloat<px4::params::RDD_D_GAIN_GUIDE>) _param_rdc_i_gain_waypoint_controller,
 		(ParamFloat<px4::params::NAV_ACC_RAD>) _param_rdc_accepted_waypoint_radius,
-		(ParamFloat<px4::params::RDC_VEL_ALGN>) _param_rdc_velocity_alignment_subtraction,
-		(ParamFloat<px4::params::RDC_MAX_JERK>) _param_rdc_max_jerk,
-		(ParamFloat<px4::params::RDC_MAX_ACCEL>) _param_rdc_max_acceleration,
-		(ParamFloat<px4::params::RDC_WP_VEL>) _param_rdc_waypoing_min_vel
+		(ParamFloat<px4::params::RDD_VEL_ALGN>) _param_rdc_velocity_alignment_subtraction
+		// (ParamFloat<px4::params::RDC_MAX_JERK>) _param_rdc_max_jerk,
+		// (ParamFloat<px4::params::RDC_MAX_ACCEL>) _param_rdc_max_acceleration,
+		// (ParamFloat<px4::params::RDC_WP_VEL>) _param_rdc_waypoing_min_vel
 	)
 
 };

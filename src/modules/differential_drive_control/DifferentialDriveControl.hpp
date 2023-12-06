@@ -48,6 +48,11 @@
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/vehicle_status.h>
 #include <uORB/topics/vehicle_control_mode.h>
+
+#include <uORB/topics/vehicle_global_position.h>
+#include <uORB/topics/position_setpoint_triplet.h>
+#include <uORB/topics/vehicle_attitude.h>
+
 #include <uORB/Publication.hpp>
 #include <uORB/Subscription.hpp>
 #include <uORB/SubscriptionMultiArray.hpp>
@@ -58,6 +63,7 @@
 
 // Local includes
 #include <DifferentialDriveKinematics.hpp>
+#include <DifferentialDriveGuidance.hpp>
 
 namespace differential_drive_control
 {
@@ -91,17 +97,27 @@ private:
 	uORB::Subscription _parameter_update_sub{ORB_ID(parameter_update)};
 	uORB::Subscription _vehicle_control_mode_sub{ORB_ID(vehicle_control_mode)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
+	uORB::Subscription _differential_drive_setpoint_sub{ORB_ID(differential_drive_setpoint)};
+	uORB::Subscription _global_pos_sub{ORB_ID(vehicle_global_position)};
+	uORB::Subscription _pos_sp_triplet_sub{ORB_ID(position_setpoint_triplet)};
+	uORB::Subscription _vehicle_attitude_sub{ORB_ID(vehicle_attitude)};
 
 	uORB::PublicationMulti<actuator_motors_s> _actuator_motors_pub{ORB_ID(actuator_motors)};
 	uORB::Publication<differential_drive_setpoint_s> _differential_drive_setpoint_pub{ORB_ID(differential_drive_setpoint)};
 
 	differential_drive_setpoint_s _differential_drive_setpoint{};
-	DifferentialDriveKinematics _differential_drive_kinematics{};
-
+	position_setpoint_triplet_s _pos_sp_triplet{};
+	vehicle_attitude_s _vehicle_attitude{};
 	bool _armed = false;
 	bool _manual_driving = false;
-	float _max_speed{0.f};
-	float _max_angular_velocity{0.f};
+	bool _mission_driving = false;
+	bool _first_waypoint_intialized = false;
+
+	hrt_abstime _time_stamp_last{}; /**< time stamp when task was last updated */
+	static constexpr uint64_t _timeout = 500000; /**< maximal time in us before a loop or data times out */
+
+	DifferentialDriveKinematics _differential_drive_kinematics;
+	DifferentialDriveGuidance _differential_guidance_controller;
 
 	DEFINE_PARAMETERS(
 		(ParamFloat<px4::params::RDD_SPEED_SCALE>) _param_rdd_speed_scale,

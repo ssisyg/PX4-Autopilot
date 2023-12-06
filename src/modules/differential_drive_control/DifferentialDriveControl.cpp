@@ -40,7 +40,8 @@ namespace differential_drive_control
 
 DifferentialDriveControl::DifferentialDriveControl() :
 	ModuleParams(nullptr),
-	ScheduledWorkItem(MODULE_NAME, px4::wq_configurations::rate_ctrl)
+	ScheduledWorkItem(MODULE_NAME, px4::wq_configurations::rate_ctrl),
+	_differential_guidance_controller(this)
 {
 	updateParams();
 }
@@ -70,6 +71,9 @@ void DifferentialDriveControl::Run()
 	}
 
 	hrt_abstime now = hrt_absolute_time();
+
+	float dt  = math::min((now - _time_stamp_last), _timeout) / 1e6f;
+	_time_stamp_last = now;
 
 	if (_parameter_update_sub.updated()) {
 		parameter_update_s pupdate;
@@ -107,6 +111,52 @@ void DifferentialDriveControl::Run()
 	if(_mission_driving) {
 		// Mission mode
 		// directly receive setpoints from the guidance library
+		if(_global_pos_sub.updated()) {
+			vehicle_global_position_s global_pos{};
+
+			_global_pos_sub.copy(&global_pos);
+
+			if (_pos_sp_triplet_sub.updated()) {
+				_pos_sp_triplet_sub.copy(&_pos_sp_triplet);
+			}
+
+			if (_vehicle_attitude_sub.updated()) {
+				_vehicle_attitude_sub.copy(&_vehicle_attitude);
+			}
+
+			matrix::Vector2f global_position(global_pos.lat, global_pos.lon);
+			matrix::Vector2f current_waypoint(_pos_sp_triplet.current.lat, _pos_sp_triplet.current.lon);
+			matrix::Vector2f next_waypoint(_pos_sp_triplet.next.lat, _pos_sp_triplet.next.lon);
+			matrix::Vector2f previous_waypoint = {0.f, 0.f};
+
+			// edge case when system is initialized and there is no previous waypoint
+			if(!PX4_ISFINITE(_pos_sp_triplet.previous.lat) && !_first_waypoint_intialized){
+				previous_waypoint(0) = global_position(0);
+				previous_waypoint(1) = global_position(1);
+				_first_waypoint_intialized = true;
+			} else if (PX4_ISFINITE(_pos_sp_triplet.previous.lat)){
+				previous_waypoint(0) = _pos_sp_triplet.previous.lat;
+				previous_waypoint(1) = _pos_sp_triplet.previous.lon;
+			}
+
+			const float vehicle_yaw = matrix::Eulerf(matrix::Quatf(_vehicle_attitude.q)).psi();
+
+			matrix::Vector2f guidance_output =
+				_differential_guidance_controller.computeGuidance(
+					global_position,
+					current_waypoint,
+					previous_waypoint,
+					next_waypoint,
+					vehicle_yaw,
+					dt
+				);
+
+			_differential_drive_setpoint.timestamp = now;
+			_differential_drive_setpoint.speed = guidance_output(0);
+			_differential_drive_setpoint.yaw_rate = guidance_output(1);
+			_differential_drive_setpoint_pub.publish(_differential_drive_setpoint);
+
+		}
 
 
 	}

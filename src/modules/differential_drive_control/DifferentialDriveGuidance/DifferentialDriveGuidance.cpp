@@ -1,15 +1,28 @@
 #include "DifferentialDriveGuidance.hpp"
 
+DifferentialDriveGuidance::DifferentialDriveGuidance(ModuleParams *parent) : ModuleParams(parent)
+{
+	pid_init(&yaw_rate_pid, PID_MODE_DERIVATIV_CALC, 0.001f); // Replace _dt with actual minimum timestep
+	pid_set_parameters(&yaw_rate_pid,
+			_param_rdc_p_gain_waypoint_controller.get(),  // Proportional gain
+			_param_rdc_i_gain_waypoint_controller.get(),  // Integral gain
+			_param_rdc_d_gain_waypoint_controller.get(),  // Derivative gain
+			200,  // Integral limit
+			200);  // Output limit
+}
+
 
 matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector2f &current_pos,
 		const matrix::Vector2f &waypoint, const matrix::Vector2f &previous_waypoint, const matrix::Vector2f &next_waypoint,
-		float vehicle_yaw, float dt, float max_forwards_velocity, float max_angular_velocity)
+		float vehicle_yaw, float dt)
 {
 	_global_position = current_pos;
 	_current_waypoint = waypoint;
 	_previous_waypoint = previous_waypoint;
 	_next_waypoint = next_waypoint;
 	_dt = dt;
+	float max_forwards_velocity = _param_rdd_max_speed.get();
+	// float max_angular_velocity = _param_rdd_max_angular_velocity.get();
 
 	float desired_heading = computeAdvancedBearing(_global_position, _current_waypoint, _previous_waypoint);
 
@@ -21,30 +34,25 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 	float align_error = computeAlignment(_global_position, _current_waypoint, _previous_waypoint);
 
 	const float desired_angular_rate =
-		_yaw_rate_point_pid.pid(
-			heading_error,
-			0,
-			_dt,
-			200,
-			max_angular_velocity,
-			true,
-			_param_rdc_p_gain_waypoint_controller.get(),
-			_param_rdc_d_gain_waypoint_controller.get(),
-			_param_rdc_i_gain_waypoint_controller.get());
+		pid_calculate(&yaw_rate_pid,
+                         0,  // Setpoint
+                         heading_error,  // Current state
+                         0,  // Derivative (ignored in PID_MODE_DERIVATIV_CALC)
+                         _dt);  // Time step
 
 	float desired_linear_velocity = max_forwards_velocity;
 
-	// initialize this at the start of the function and get parameters
-	// not quite sure about this section, subject to change
-	_forwards_velocity_smoothing.setMaxJerk(_param_rdc_max_jerk.get());
-	_forwards_velocity_smoothing.setMaxAccel(_param_rdc_max_acceleration.get());
-	_forwards_velocity_smoothing.setMaxVel(max_forwards_velocity);
-	const float max_velocity = math::trajectory::computeMaxSpeedFromDistance(_param_rdc_max_jerk.get(),
-				   _param_rdc_max_acceleration.get(), distance_to_next_wp, _param_rdc_waypoing_min_vel.get());
-	_forwards_velocity_smoothing.updateDurations(max_velocity);
-	_forwards_velocity_smoothing.updateTraj(_dt);
+	// // initialize this at the start of the function and get parameters
+	// // not quite sure about this section, subject to change
+	// _forwards_velocity_smoothing.setMaxJerk(_param_rdc_max_jerk.get());
+	// _forwards_velocity_smoothing.setMaxAccel(_param_rdc_max_acceleration.get());
+	// _forwards_velocity_smoothing.setMaxVel(max_forwards_velocity);
+	// const float max_velocity = math::trajectory::computeMaxSpeedFromDistance(_param_rdc_max_jerk.get(),
+	// 			   _param_rdc_max_acceleration.get(), distance_to_next_wp, _param_rdc_waypoing_min_vel.get());
+	// _forwards_velocity_smoothing.updateDurations(max_velocity);
+	// _forwards_velocity_smoothing.updateTraj(_dt);
 
-	desired_linear_velocity = _forwards_velocity_smoothing.getCurrentVelocity();
+	// desired_linear_velocity = _forwards_velocity_smoothing.getCurrentVelocity();
 	desired_linear_velocity = desired_linear_velocity - (1 - abs(align_error)) * desired_linear_velocity *
 				  _param_rdc_velocity_alignment_subtraction.get();
 
