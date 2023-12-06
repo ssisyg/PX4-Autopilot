@@ -84,6 +84,7 @@ void DifferentialDriveControl::Run()
 		if (_vehicle_control_mode_sub.copy(&vehicle_control_mode)) {
 			_armed = vehicle_control_mode.flag_armed;
 			_manual_driving = vehicle_control_mode.flag_control_manual_enabled; // change this when more modes are supported
+			_mission_driving = vehicle_control_mode.flag_control_auto_enabled;
 		}
 	}
 
@@ -101,6 +102,13 @@ void DifferentialDriveControl::Run()
 				_differential_drive_setpoint_pub.publish(_differential_drive_setpoint);
 			}
 		}
+	}
+
+	if(_mission_driving) {
+		// Mission mode
+		// directly receive setpoints from the guidance library
+
+
 	}
 
 	_differential_drive_setpoint_sub.update(&_differential_drive_setpoint);
