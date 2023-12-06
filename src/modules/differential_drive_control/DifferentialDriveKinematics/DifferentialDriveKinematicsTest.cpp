@@ -172,3 +172,79 @@ TEST(DifferentialDriveKinematicsTest, MaxAngularCase)
 	// Test with high linear velocity and yaw rate, expecting speeds to be scaled down to fit the max speed
 	EXPECT_EQ(kinematics.computeInverseKinematics(0.f, 10.f), Vector2f(-1.f, 1.f));
 }
+
+
+TEST(DifferentialDriveKinematicsTest, UnitSaturationCase)
+{
+    DifferentialDriveKinematics kinematics;
+    kinematics.setWheelBase(1.f);
+    kinematics.setWheelRadius(1.f);
+    kinematics.setMaxSpeed(1.f);
+    kinematics.setMaxAngularVelocity(10.f);
+
+    // Test with unit values for linear velocity and yaw rate, but with max speed that requires saturation
+    EXPECT_EQ(kinematics.computeInverseKinematics(1.f, 1.f), Vector2f(1.f/6.f, 7.f/6.f));
+}
+
+
+TEST(DifferentialDriveKinematicsTest, OppositeUnitSaturationCase)
+{
+    DifferentialDriveKinematics kinematics;
+    kinematics.setWheelBase(1.f);
+    kinematics.setWheelRadius(1.f);
+    kinematics.setMaxSpeed(1.f);
+    kinematics.setMaxAngularVelocity(10.f);
+
+    // Negative linear velocity for backward motion and positive yaw rate for turning right
+    EXPECT_EQ(kinematics.computeInverseKinematics(-1.f, 1.f), Vector2f(-7.f/6.f, -1.f/6.f));
+}
+
+TEST(DifferentialDriveKinematicsTest, RotateInPlaceCase)
+{
+    DifferentialDriveKinematics kinematics;
+    kinematics.setWheelBase(1.f);
+    kinematics.setWheelRadius(1.f);
+    kinematics.setMaxSpeed(1.f);
+    kinematics.setMaxAngularVelocity(10.f);
+
+    // Test rotating in place (zero linear velocity, non-zero yaw rate)
+    EXPECT_EQ(kinematics.computeInverseKinematics(0.f, 1.f), Vector2f(-0.5f, 0.5f));
+}
+
+TEST(DifferentialDriveKinematicsTest, StraightMovementCase)
+{
+    DifferentialDriveKinematics kinematics;
+    kinematics.setWheelBase(1.f);
+    kinematics.setWheelRadius(1.f);
+    kinematics.setMaxSpeed(1.f);
+    kinematics.setMaxAngularVelocity(10.f);
+
+    // Test moving straight (non-zero linear velocity, zero yaw rate)
+    EXPECT_EQ(kinematics.computeInverseKinematics(1.f, 0.f), Vector2f(1.f, 1.f));
+}
+
+TEST(DifferentialDriveKinematicsTest, MinInputValuesCase)
+{
+    DifferentialDriveKinematics kinematics;
+    kinematics.setWheelBase(FLT_MIN);
+    kinematics.setWheelRadius(FLT_MIN);
+    kinematics.setMaxSpeed(FLT_MIN);
+    kinematics.setMaxAngularVelocity(FLT_MIN);
+
+    // Test with minimum possible input values
+    EXPECT_EQ(kinematics.computeInverseKinematics(FLT_MIN, FLT_MIN), Vector2f(0.f, 0.f));
+}
+
+TEST(DifferentialDriveKinematicsTest, MaxSpeedLimitCase)
+{
+    DifferentialDriveKinematics kinematics;
+    kinematics.setWheelBase(1.f);
+    kinematics.setWheelRadius(1.f);
+    kinematics.setMaxSpeed(1.f);
+    kinematics.setMaxAngularVelocity(1.f);
+
+    // Test with high linear velocity and yaw rate, expecting speeds to be scaled down to fit the max speed
+    EXPECT_EQ(kinematics.computeInverseKinematics(10.f, 10.f), Vector2f(0.45238f, 1.45238f));
+}
+
+
