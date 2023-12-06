@@ -600,7 +600,7 @@ void AirspeedModule::select_airspeed_and_publish()
 	}
 
 	// check if airspeed based on ground-wind speed is valid and can be published
-	if (_param_airspeed_primary_index.get() > airspeed_index::DISABLED_INDEX &&
+	if (_param_airspeed_primary_index.get() >= airspeed_index::GROUND_MINUS_WIND_INDEX &&
 	    (_valid_airspeed_index < airspeed_index::FIRST_SENSOR_INDEX
 	     || _param_airspeed_primary_index.get() == airspeed_index::GROUND_MINUS_WIND_INDEX)) {
 
