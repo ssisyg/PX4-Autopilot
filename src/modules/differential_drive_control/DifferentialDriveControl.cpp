@@ -92,6 +92,26 @@ void DifferentialDriveControl::Run()
 		}
 	}
 
+	if (_pos_sp_triplet_sub.updated()) {
+		_pos_sp_triplet_sub.copy(&_pos_sp_triplet);
+	}
+
+	if (_vehicle_attitude_sub.updated()) {
+		_vehicle_attitude_sub.copy(&_vehicle_attitude);
+	}
+
+	if (_global_pos_sub.updated()) {
+		_global_pos_sub.copy(&_global_pos);
+	}
+
+	if (_vehicle_angular_velocity_sub.updated()) {
+		_vehicle_angular_velocity_sub.copy(&_vehicle_angular_velocity);
+	}
+
+	if (_vehicle_local_position_sub.updated()) {
+		_vehicle_local_position_sub.copy(&_vehicle_local_position);
+	}
+
 	if (_manual_driving) {
 		// Manual mode
 		// directly produce setpoints from the manual control setpoint (joystick)
@@ -108,56 +128,62 @@ void DifferentialDriveControl::Run()
 		}
 	}
 
-	if(_mission_driving) {
+	if (_mission_driving && _armed) {
 		// Mission mode
 		// directly receive setpoints from the guidance library
-		if(_global_pos_sub.updated()) {
-			vehicle_global_position_s global_pos{};
+		matrix::Vector2f global_position(_global_pos.lat, _global_pos.lon);
+		matrix::Vector2f current_waypoint(_pos_sp_triplet.current.lat, _pos_sp_triplet.current.lon);
+		matrix::Vector2f next_waypoint(_pos_sp_triplet.next.lat, _pos_sp_triplet.next.lon);
 
-			_global_pos_sub.copy(&global_pos);
+		// edge case when system is initialized and there is no previous waypoint
+		if (!PX4_ISFINITE(_pos_sp_triplet.previous.lat) && !_first_waypoint_intialized) {
+			_previous_waypoint(0) = global_position(0);
+			_previous_waypoint(1) = global_position(1);
+			_first_waypoint_intialized = true;
+			printf("yeehaw\n");
 
-			if (_pos_sp_triplet_sub.updated()) {
-				_pos_sp_triplet_sub.copy(&_pos_sp_triplet);
-			}
-
-			if (_vehicle_attitude_sub.updated()) {
-				_vehicle_attitude_sub.copy(&_vehicle_attitude);
-			}
-
-			matrix::Vector2f global_position(global_pos.lat, global_pos.lon);
-			matrix::Vector2f current_waypoint(_pos_sp_triplet.current.lat, _pos_sp_triplet.current.lon);
-			matrix::Vector2f next_waypoint(_pos_sp_triplet.next.lat, _pos_sp_triplet.next.lon);
-			matrix::Vector2f previous_waypoint = {0.f, 0.f};
-
-			// edge case when system is initialized and there is no previous waypoint
-			if(!PX4_ISFINITE(_pos_sp_triplet.previous.lat) && !_first_waypoint_intialized){
-				previous_waypoint(0) = global_position(0);
-				previous_waypoint(1) = global_position(1);
-				_first_waypoint_intialized = true;
-			} else if (PX4_ISFINITE(_pos_sp_triplet.previous.lat)){
-				previous_waypoint(0) = _pos_sp_triplet.previous.lat;
-				previous_waypoint(1) = _pos_sp_triplet.previous.lon;
-			}
-
-			const float vehicle_yaw = matrix::Eulerf(matrix::Quatf(_vehicle_attitude.q)).psi();
-
-			matrix::Vector2f guidance_output =
-				_differential_guidance_controller.computeGuidance(
-					global_position,
-					current_waypoint,
-					previous_waypoint,
-					next_waypoint,
-					vehicle_yaw,
-					dt
-				);
-
-			_differential_drive_setpoint.timestamp = now;
-			_differential_drive_setpoint.speed = guidance_output(0);
-			_differential_drive_setpoint.yaw_rate = guidance_output(1);
-			_differential_drive_setpoint_pub.publish(_differential_drive_setpoint);
-
+		} else if (PX4_ISFINITE(_pos_sp_triplet.previous.lat)) {
+			_previous_waypoint(0) = _pos_sp_triplet.previous.lat;
+			_previous_waypoint(1) = _pos_sp_triplet.previous.lon;
 		}
 
+		const float vehicle_yaw = matrix::Eulerf(matrix::Quatf(_vehicle_attitude.q)).psi();
+
+		// printf("global position: %f, %f\n", (double)global_position(0), (double)global_position(1));
+		// printf("current waypoint: %f, %f\n", (double)current_waypoint(0), (double)current_waypoint(1));
+		// printf("previous waypoint: %f, %f\n", (double)_previous_waypoint(0), (double)_previous_waypoint(1));
+		// printf("next waypoint: %f, %f\n", (double)next_waypoint(0), (double)next_waypoint(1));
+
+		float body_angular_velocity = _vehicle_angular_velocity.xyz[2];
+
+		matrix::Vector3f ground_speed(_vehicle_local_position.vx, _vehicle_local_position.vy,  _vehicle_local_position.vz);
+		matrix::Vector2f ground_speed_2d(ground_speed);
+		// Velocity in body frame
+		const Dcmf R_to_body(Quatf(_vehicle_attitude.q).inversed());
+		const Vector3f vel = R_to_body * Vector3f(ground_speed(0), ground_speed(1), ground_speed(2));
+
+		const float x_vel = vel(0);
+
+		matrix::Vector2f guidance_output =
+			_differential_guidance_controller.computeGuidance(
+				global_position,
+				current_waypoint,
+				_previous_waypoint,
+				next_waypoint,
+				vehicle_yaw,
+				x_vel,
+				body_angular_velocity,
+				dt
+			);
+
+		// printf("guidance_output: %f, %f\n", (double)guidance_output(0), (double)guidance_output(1));
+		printf(" \n");
+
+
+		_differential_drive_setpoint.timestamp = now;
+		_differential_drive_setpoint.speed = guidance_output(0);
+		_differential_drive_setpoint.yaw_rate = guidance_output(1);
+		_differential_drive_setpoint_pub.publish(_differential_drive_setpoint);
 
 	}
 

@@ -54,8 +54,9 @@ public:
 	DifferentialDriveGuidance(ModuleParams *parent);
 	~DifferentialDriveGuidance() = default;
 
-	matrix::Vector2f 	computeGuidance(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint,
-						const matrix::Vector2f &previous_waypoint, const matrix::Vector2f &next_waypoint, float vehicle_yaw, float dt);
+	matrix::Vector2f 	computeGuidance(const matrix::Vector2f &current_pos, const matrix::Vector2f &current_waypoint,
+						const matrix::Vector2f &previous_waypoint, const matrix::Vector2f &next_waypoint, float vehicle_yaw,
+						float body_velocity, float angular_velocity, float dt);
 	float 	computeAdvancedBearing(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint,
 				       const matrix::Vector2f &previous_waypoint);
 	float 	computeBearing(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint);
@@ -69,22 +70,15 @@ private:
 	matrix::Vector2f _input{0.0f, 0.0f};  // input_[0] -> Vx [m/s], input_[1] -> Omega [rad/s]
 	matrix::Vector2f _output{0.0f, 0.0f}; // _output[0] -> Right Motor [rad/s], _output[1] -> Left Motor [rad/s]
 
-	matrix::Vector2f _global_position{0.0, 0.0};
-	matrix::Vector2f _local_position{0.0, 0.0};
-	matrix::Vector2f _current_waypoint{0.0, 0.0};
-	matrix::Vector2f _previous_waypoint{0.0, 0.0};
-	matrix::Vector2f _next_waypoint{0.0, 0.0};
-
-	float _dt{1.0};
+	float _vel{0.0f};
+	float _ang_vel{0.0f};
 
 	VelocitySmoothing _forwards_velocity_smoothing;
 	PositionSmoothing _position_smoothing;
 
-	// rover_drive_control_pid 		_yaw_rate_point_pid;
-	// rover_drive_control_pid 		_yaw_rate_align_pid;
-	// rover_drive_control_pid 		_speed_control_pid;
-
+	PID_t yaw_angle_pid;
 	PID_t yaw_rate_pid;
+	PID_t velocity_pid;
 
 	DEFINE_PARAMETERS(
 		(ParamFloat<px4::params::RDD_MAX_SPEED>) _param_rdd_max_speed,
@@ -94,9 +88,6 @@ private:
 		(ParamFloat<px4::params::RDD_D_GAIN_GUIDE>) _param_rdc_i_gain_waypoint_controller,
 		(ParamFloat<px4::params::NAV_ACC_RAD>) _param_rdc_accepted_waypoint_radius,
 		(ParamFloat<px4::params::RDD_VEL_ALGN>) _param_rdc_velocity_alignment_subtraction
-		// (ParamFloat<px4::params::RDC_MAX_JERK>) _param_rdc_max_jerk,
-		// (ParamFloat<px4::params::RDC_MAX_ACCEL>) _param_rdc_max_acceleration,
-		// (ParamFloat<px4::params::RDC_WP_VEL>) _param_rdc_waypoing_min_vel
 	)
 
 };

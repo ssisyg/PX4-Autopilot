@@ -48,6 +48,8 @@
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/vehicle_status.h>
 #include <uORB/topics/vehicle_control_mode.h>
+#include <uORB/topics/vehicle_angular_velocity.h>
+#include <uORB/topics/vehicle_local_position.h>
 
 #include <uORB/topics/vehicle_global_position.h>
 #include <uORB/topics/position_setpoint_triplet.h>
@@ -101,6 +103,9 @@ private:
 	uORB::Subscription _global_pos_sub{ORB_ID(vehicle_global_position)};
 	uORB::Subscription _pos_sp_triplet_sub{ORB_ID(position_setpoint_triplet)};
 	uORB::Subscription _vehicle_attitude_sub{ORB_ID(vehicle_attitude)};
+	uORB::Subscription _vehicle_angular_velocity_sub{ORB_ID(vehicle_angular_velocity)};
+	uORB::Subscription _vehicle_local_position_sub{ORB_ID(vehicle_local_position)};
+
 
 	uORB::PublicationMulti<actuator_motors_s> _actuator_motors_pub{ORB_ID(actuator_motors)};
 	uORB::Publication<differential_drive_setpoint_s> _differential_drive_setpoint_pub{ORB_ID(differential_drive_setpoint)};
@@ -108,6 +113,9 @@ private:
 	differential_drive_setpoint_s _differential_drive_setpoint{};
 	position_setpoint_triplet_s _pos_sp_triplet{};
 	vehicle_attitude_s _vehicle_attitude{};
+	vehicle_global_position_s _global_pos{};
+	vehicle_angular_velocity_s _vehicle_angular_velocity{};
+	vehicle_local_position_s _vehicle_local_position{};
 	bool _armed = false;
 	bool _manual_driving = false;
 	bool _mission_driving = false;
@@ -115,6 +123,8 @@ private:
 
 	hrt_abstime _time_stamp_last{}; /**< time stamp when task was last updated */
 	static constexpr uint64_t _timeout = 500000; /**< maximal time in us before a loop or data times out */
+
+	matrix::Vector2f _previous_waypoint = {0.f, 0.f};
 
 	DifferentialDriveKinematics _differential_drive_kinematics;
 	DifferentialDriveGuidance _differential_guidance_controller;
