@@ -58,11 +58,9 @@ public:
 						const matrix::Vector2f &previous_waypoint, const matrix::Vector2f &next_waypoint, float vehicle_yaw,
 						float body_velocity, float angular_velocity, float dt);
 	float 	computeAdvancedBearing(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint,
-				       const matrix::Vector2f &previous_waypoint);
+				       const matrix::Vector2f &previous_waypoint, float distance_to_next_wp);
 	float 	computeBearing(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint);
 	float 	normalizeAngle(float angle);
-	float 	computeAlignment(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint,
-				 const matrix::Vector2f &previous_waypoint);
 
 private:
 
@@ -76,18 +74,28 @@ private:
 	VelocitySmoothing _forwards_velocity_smoothing;
 	PositionSmoothing _position_smoothing;
 
-	PID_t yaw_angle_pid;
 	PID_t yaw_rate_pid;
 	PID_t velocity_pid;
+
+	static const int BUFFER_SIZE = 20;  // Adjust the size as needed
+	float vel_buffer[BUFFER_SIZE];
+	float ang_vel_dot_buffer[BUFFER_SIZE];
+	int buffer_index;
 
 	DEFINE_PARAMETERS(
 		(ParamFloat<px4::params::RDD_MAX_SPEED>) _param_rdd_max_speed,
 		(ParamFloat<px4::params::RDD_MAX_ANG_VEL>) _param_rdd_max_angular_velocity,
-		(ParamFloat<px4::params::RDD_P_GAIN_GUIDE>) _param_rdc_p_gain_waypoint_controller,
-		(ParamFloat<px4::params::RDD_I_GAIN_GUIDE>) _param_rdc_d_gain_waypoint_controller,
-		(ParamFloat<px4::params::RDD_D_GAIN_GUIDE>) _param_rdc_i_gain_waypoint_controller,
-		(ParamFloat<px4::params::NAV_ACC_RAD>) _param_rdc_accepted_waypoint_radius,
-		(ParamFloat<px4::params::RDD_VEL_ALGN>) _param_rdc_velocity_alignment_subtraction
+		(ParamFloat<px4::params::RDD_P_YAW_RATE>) _param_rdd_p_gain_yaw_rate,
+		(ParamFloat<px4::params::RDD_I_YAW_RATE>) _param_rdd_d_gain_yaw_rate,
+		(ParamFloat<px4::params::RDD_D_YAW_RATE>) _param_rdd_i_gain_yaw_rate,
+		(ParamFloat<px4::params::RDD_P_SPEED>) _param_rdd_p_gain_speed,
+		(ParamFloat<px4::params::RDD_I_SPEED>) _param_rdd_d_gain_speed,
+		(ParamFloat<px4::params::RDD_D_SPEED>) _param_rdd_i_gain_speed,
+		(ParamFloat<px4::params::NAV_ACC_RAD>) _param_rdd_accepted_waypoint_radius,
+		(ParamFloat<px4::params::RDD_VEL_ALGN>) _param_rdd_velocity_alignment_subtraction,
+		(ParamFloat<px4::params::RDD_WAYPT_OFST>) _param_rdd_waypoint_offset,
+		(ParamFloat<px4::params::RDD_MAX_JERK>) _param_rdd_max_jerk,
+		(ParamFloat<px4::params::RDD_MAX_ACCEL>) _param_rdd_max_accel
 	)
 
 };

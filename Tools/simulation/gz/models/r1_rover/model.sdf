@@ -472,28 +472,28 @@
 	        <sub_topic>command/motor_speed</sub_topic>
 	        <use_actuator_msg>true</use_actuator_msg>
 	        <actuator_number>1</actuator_number>
-		<p_gain>10.0</p_gain>
+		<p_gain>100.0</p_gain>
 	  </plugin>
 	  <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
 	        <joint_name>motor_1</joint_name>
 	        <sub_topic>command/motor_speed</sub_topic>
 		<use_actuator_msg>true</use_actuator_msg>
 	        <actuator_number>1</actuator_number>
-	        <p_gain>10.0</p_gain>
+	        <p_gain>100.0</p_gain>
 	  </plugin>
 	  <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
 		<joint_name>motor_2</joint_name>
 		<sub_topic>command/motor_speed</sub_topic>
 		<use_actuator_msg>true</use_actuator_msg>
 		<actuator_number>0</actuator_number>
-		<p_gain>10.0</p_gain>
+		<p_gain>100.0</p_gain>
 	  </plugin>
 	  <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
 		<joint_name>motor_3</joint_name>
 		<sub_topic>command/motor_speed</sub_topic>
 		<use_actuator_msg>true</use_actuator_msg>
 		<actuator_number>0</actuator_number>
-		<p_gain>10.0</p_gain>
+		<p_gain>100.0</p_gain>
 	  </plugin>
 		<plugin
 		filename="gz-sim-joint-state-publisher-system"

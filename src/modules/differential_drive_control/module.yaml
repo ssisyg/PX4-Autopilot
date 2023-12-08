@@ -53,27 +53,54 @@ parameters:
         increment: 0.01
         decimal: 2
         default: 0.3
-      RDD_P_GAIN_GUIDE:
+      RDD_P_YAW_RATE:
         description:
-          short: Proportional gain for guidance
+          short: Proportional gain for yaw rate
         type: float
         min: 0
         max: 100
         increment: 0.01
         decimal: 2
         default: 1.0
-      RDD_I_GAIN_GUIDE:
+      RDD_I_YAW_RATE:
         description:
-          short: Integral gain for guidance
+          short: Integral gain for yaw rate
         type: float
         min: 0
         max: 100
         increment: 0.01
         decimal: 2
         default: 0.0
-      RDD_D_GAIN_GUIDE:
+      RDD_D_YAW_RATE:
         description:
-          short: Derivative gain for guidance
+          short: Derivative gain for yaw rate
+        type: float
+        min: 0
+        max: 100
+        increment: 0.01
+        decimal: 2
+        default: 0.0
+      RDD_P_SPEED:
+        description:
+          short: Proportional gain for speed
+        type: float
+        min: 0
+        max: 100
+        increment: 0.01
+        decimal: 2
+        default: 1.0
+      RDD_I_SPEED:
+        description:
+          short: Integral gain for speed
+        type: float
+        min: 0
+        max: 100
+        increment: 0.01
+        decimal: 2
+        default: 0.0
+      RDD_D_SPEED:
+        description:
+          short: Derivative gain for speed
         type: float
         min: 0
         max: 100
@@ -91,4 +118,36 @@ parameters:
         increment: 0.01
         decimal: 2
         default: 0.1
+      RDD_WAYPT_OFST:
+        description:
+          short: Waypoint offset
+          long: Waypoint offset is used to adjust the offset of the waypoint
+        type: float
+        min: 0
+        max: 100
+        increment: 0.01
+        decimal: 2
+        default: 4.0
+      RDD_MAX_JERK:
+        description:
+          short: Maximum jerk
+          long: Maximum jerk is used to limit the jerk of the rover
+        type: float
+        unit: m/s^3
+        min: 0
+        max: 100
+        increment: 0.01
+        decimal: 2
+        default: 0.5
+      RDD_MAX_ACCEL:
+        description:
+          short: Maximum acceleration
+          long: Maximum acceleration is used to limit the acceleration of the rover
+        type: float
+        unit: m/s^2
+        min: 0
+        max: 100
+        increment: 0.01
+        decimal: 2
+        default: 0.5
 

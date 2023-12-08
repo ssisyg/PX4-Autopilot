@@ -149,11 +149,6 @@ void DifferentialDriveControl::Run()
 
 		const float vehicle_yaw = matrix::Eulerf(matrix::Quatf(_vehicle_attitude.q)).psi();
 
-		// printf("global position: %f, %f\n", (double)global_position(0), (double)global_position(1));
-		// printf("current waypoint: %f, %f\n", (double)current_waypoint(0), (double)current_waypoint(1));
-		// printf("previous waypoint: %f, %f\n", (double)_previous_waypoint(0), (double)_previous_waypoint(1));
-		// printf("next waypoint: %f, %f\n", (double)next_waypoint(0), (double)next_waypoint(1));
-
 		float body_angular_velocity = _vehicle_angular_velocity.xyz[2];
 
 		matrix::Vector3f ground_speed(_vehicle_local_position.vx, _vehicle_local_position.vy,  _vehicle_local_position.vz);
@@ -176,10 +171,6 @@ void DifferentialDriveControl::Run()
 				dt
 			);
 
-		// printf("guidance_output: %f, %f\n", (double)guidance_output(0), (double)guidance_output(1));
-		printf(" \n");
-
-
 		_differential_drive_setpoint.timestamp = now;
 		_differential_drive_setpoint.speed = guidance_output(0);
 		_differential_drive_setpoint.yaw_rate = guidance_output(1);
@@ -194,6 +185,9 @@ void DifferentialDriveControl::Run()
 	Vector2f wheel_speeds = _differential_drive_kinematics.computeInverseKinematics(
 					_differential_drive_setpoint.speed,
 					_differential_drive_setpoint.yaw_rate);
+
+	printf("wheel speeds: %f, %f\n", (double)wheel_speeds(0), (double)wheel_speeds(1));
+	printf("yaw rate: %f\n", (double)_differential_drive_setpoint.yaw_rate);
 
 	// Check if max_angular_wheel_speed is zero
 	const bool setpoint_timeout = (_differential_drive_setpoint.timestamp + 100_ms) < now;
