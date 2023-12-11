@@ -52,7 +52,7 @@ parameters:
         max: 100
         increment: 0.01
         decimal: 2
-        default: 0.3
+        default: 10
       RDD_P_YAW_RATE:
         description:
           short: Proportional gain for yaw rate

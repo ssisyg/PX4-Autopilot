@@ -129,6 +129,11 @@ private:
 	DifferentialDriveKinematics _differential_drive_kinematics;
 	DifferentialDriveGuidance _differential_guidance_controller;
 
+	float _max_speed{0.f};
+	float _max_angular_velocity{0.f};
+	float _speed_gain{0.f};
+	float _angular_velocity_gain{0.f};
+
 	DEFINE_PARAMETERS(
 		(ParamFloat<px4::params::RDD_SPEED_SCALE>) _param_rdd_speed_scale,
 		(ParamFloat<px4::params::RDD_ANG_SCALE>) _param_rdd_ang_velocity_scale,

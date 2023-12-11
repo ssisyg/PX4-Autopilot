@@ -180,7 +180,7 @@ TEST(DifferentialDriveKinematicsTest, UnitSaturationCase)
 	kinematics.setWheelBase(1.f);
 	kinematics.setWheelRadius(1.f);
 	kinematics.setMaxSpeed(1.f);
-	kinematics.setMaxAngularVelocity(10.f);
+	kinematics.setMaxAngularVelocity(1.f);
 
 	// Test with unit values for linear velocity and yaw rate, but with max speed that requires saturation
 	EXPECT_EQ(kinematics.computeInverseKinematics(1.f, 1.f), Vector2f(0, 1));
@@ -193,7 +193,7 @@ TEST(DifferentialDriveKinematicsTest, OppositeUnitSaturationCase)
 	kinematics.setWheelBase(1.f);
 	kinematics.setWheelRadius(1.f);
 	kinematics.setMaxSpeed(1.f);
-	kinematics.setMaxAngularVelocity(10.f);
+	kinematics.setMaxAngularVelocity(1.f);
 
 	// Negative linear velocity for backward motion and positive yaw rate for turning right
 	EXPECT_EQ(kinematics.computeInverseKinematics(-1.f, 1.f), Vector2f(-1, 0));
@@ -205,7 +205,7 @@ TEST(DifferentialDriveKinematicsTest, RandomCase)
 	kinematics.setWheelBase(2.f);
 	kinematics.setWheelRadius(1.f);
 	kinematics.setMaxSpeed(1.f);
-	kinematics.setMaxAngularVelocity(10.f);
+	kinematics.setMaxAngularVelocity(1.f);
 
 	// Negative linear velocity for backward motion and positive yaw rate for turning right
 	EXPECT_EQ(kinematics.computeInverseKinematics(0.5f, 0.7f), Vector2f(-0.4f, 1.0f));
@@ -217,7 +217,7 @@ TEST(DifferentialDriveKinematicsTest, RotateInPlaceCase)
 	kinematics.setWheelBase(1.f);
 	kinematics.setWheelRadius(1.f);
 	kinematics.setMaxSpeed(1.f);
-	kinematics.setMaxAngularVelocity(10.f);
+	kinematics.setMaxAngularVelocity(1.f);
 
 	// Test rotating in place (zero linear velocity, non-zero yaw rate)
 	EXPECT_EQ(kinematics.computeInverseKinematics(0.f, 1.f), Vector2f(-0.5f, 0.5f));
@@ -229,7 +229,7 @@ TEST(DifferentialDriveKinematicsTest, StraightMovementCase)
 	kinematics.setWheelBase(1.f);
 	kinematics.setWheelRadius(1.f);
 	kinematics.setMaxSpeed(1.f);
-	kinematics.setMaxAngularVelocity(10.f);
+	kinematics.setMaxAngularVelocity(1.f);
 
 	// Test moving straight (non-zero linear velocity, zero yaw rate)
 	EXPECT_EQ(kinematics.computeInverseKinematics(1.f, 0.f), Vector2f(1.f, 1.f));
