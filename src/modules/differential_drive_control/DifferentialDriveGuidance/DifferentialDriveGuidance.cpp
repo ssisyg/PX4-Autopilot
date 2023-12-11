@@ -70,7 +70,7 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 	printf("desired_linear_velocity: %f\n", (double)desired_linear_velocity);
 
 
-	desired_linear_velocity = math::interpolate<float>(abs(heading_error), 0.2f, 0.4f, desired_linear_velocity, 0.0f);
+	desired_linear_velocity = math::interpolate<float>(abs(heading_error), 0.05f, 0.1f, desired_linear_velocity, 0.0f);
 
 	printf("desired_linear_velocity after: %f\n", (double)desired_linear_velocity);
 
@@ -89,29 +89,29 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 		float vel_dot = pid_calculate(&velocity_pid, desired_linear_velocity, body_velocity, 0, dt);
 		float ang_vel_dot = pid_calculate(&yaw_rate_pid, heading_error, angular_velocity, 0, dt);
 
-		// Update buffers
-		vel_buffer[buffer_index] = vel_dot;
-		ang_vel_dot_buffer[buffer_index] = ang_vel_dot;
-		buffer_index = (buffer_index + 1) % BUFFER_SIZE; // Circular buffer logic
+		// // Update buffers
+		// vel_buffer[buffer_index] = vel_dot;
+		// ang_vel_dot_buffer[buffer_index] = ang_vel_dot;
+		// buffer_index = (buffer_index + 1) % BUFFER_SIZE; // Circular buffer logic
 
-		// Compute moving averages
-		float vel_moving_avg = 0;
-		float ang_vel_dot_moving_avg = 0;
+		// // Compute moving averages
+		// float vel_moving_avg = 0;
+		// float ang_vel_dot_moving_avg = 0;
 
-		for (int i = 0; i < BUFFER_SIZE; ++i) {
-			vel_moving_avg += vel_buffer[i];
-			ang_vel_dot_moving_avg += ang_vel_dot_buffer[i];
-		}
+		// for (int i = 0; i < BUFFER_SIZE; ++i) {
+		// 	vel_moving_avg += vel_buffer[i];
+		// 	ang_vel_dot_moving_avg += ang_vel_dot_buffer[i];
+		// }
 
-		vel_moving_avg /= BUFFER_SIZE;
-		ang_vel_dot_moving_avg /= BUFFER_SIZE;
+		// vel_moving_avg /= BUFFER_SIZE;
+		// ang_vel_dot_moving_avg /= BUFFER_SIZE;
 
-		// Use moving averages instead of raw values
-		vel_dot = vel_moving_avg;
-		ang_vel_dot = ang_vel_dot_moving_avg;
+		// // Use moving averages instead of raw values
+		// vel_dot = vel_moving_avg;
+		// ang_vel_dot = ang_vel_dot_moving_avg;
 
 		_vel += vel_dot;
-		// _ang_vel += ang_vel_dot;
+		_ang_vel += ang_vel_dot;
 
 		// if (abs(_vel) > _param_rdd_max_speed.get()) {
 		// 	_vel = _param_rdd_max_speed.get() * matrix::sign(_vel);
@@ -123,10 +123,13 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 		// }
 
 		output(0) = _vel;
-		output(1) = ang_vel_dot;
+		output(1) = _ang_vel;
 
 		printf("angular velocity: %f\n", (double)angular_velocity);
 		printf("ang_vel_dot: %f\n", (double)ang_vel_dot);
+
+		printf("vel_dot: %f\n", (double)vel_dot);
+		// printf("vel: %f\n", (double)_vel);
 
 		printf("\n");
 	}
