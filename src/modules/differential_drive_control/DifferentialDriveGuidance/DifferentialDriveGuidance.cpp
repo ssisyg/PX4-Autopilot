@@ -20,7 +20,7 @@ DifferentialDriveGuidance::DifferentialDriveGuidance(ModuleParams *parent) : Mod
 
 	_forwards_velocity_smoothing.setMaxJerk(_param_rdd_max_jerk.get());
 	_forwards_velocity_smoothing.setMaxAccel(_param_rdd_max_accel.get());
-	_forwards_velocity_smoothing.setMaxVel(_param_rdd_max_speed.get());
+	_forwards_velocity_smoothing.setMaxVel(_max_speed);
 
 	buffer_index = 0;
 
@@ -53,7 +53,7 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 			   200);  // Output limit
 
 
-	float desired_linear_velocity = _param_rdd_max_speed.get();
+	float desired_linear_velocity = _max_speed;
 	float distance_to_next_wp = get_distance_to_next_waypoint(current_pos(0), current_pos(1), current_waypoint(0),
 				    current_waypoint(1));
 	float desired_heading = computeAdvancedBearing(current_pos, current_waypoint, previous_waypoint, distance_to_next_wp);
@@ -61,8 +61,11 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 
 	const float max_velocity = math::trajectory::computeMaxSpeedFromDistance(_param_rdd_max_jerk.get(),
 				   _param_rdd_max_accel.get(), distance_to_next_wp, 1.f);
+	printf("max_velocity: %f\n", (double)max_velocity);
 	_forwards_velocity_smoothing.updateDurations(max_velocity);
 	_forwards_velocity_smoothing.updateTraj(dt);
+
+	printf("dt: %f\n", (double)dt);
 
 	desired_linear_velocity = _forwards_velocity_smoothing.getCurrentVelocity();
 
@@ -70,7 +73,7 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 	printf("desired_linear_velocity: %f\n", (double)desired_linear_velocity);
 
 
-	desired_linear_velocity = math::interpolate<float>(abs(heading_error), 0.05f, 0.1f, desired_linear_velocity, 0.0f);
+	// desired_linear_velocity = math::interpolate<float>(abs(heading_error), 0.2f, 0.4f, desired_linear_velocity, 0.0f);
 
 	printf("desired_linear_velocity after: %f\n", (double)desired_linear_velocity);
 
@@ -86,6 +89,10 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 		output(1) = 0;
 
 	} else {
+
+		printf("desired_linear_velocity !!!: %f\n", (double)desired_linear_velocity);
+		printf("body_velocity !!!!!!!!!!!!!: %f\n", (double)body_velocity);
+
 		float vel_dot = pid_calculate(&velocity_pid, desired_linear_velocity, body_velocity, 0, dt);
 		float ang_vel_dot = pid_calculate(&yaw_rate_pid, heading_error, angular_velocity, 0, dt);
 
@@ -113,8 +120,8 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 		_vel += vel_dot;
 		_ang_vel += ang_vel_dot;
 
-		// if (abs(_vel) > _param_rdd_max_speed.get()) {
-		// 	_vel = _param_rdd_max_speed.get() * matrix::sign(_vel);
+		// if (abs(_vel) > _max_speed) {
+		// 	_vel = _max_speed * matrix::sign(_vel);
 		// }
 
 
@@ -127,14 +134,14 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 
 		printf("angular velocity: %f\n", (double)angular_velocity);
 		printf("ang_vel_dot: %f\n", (double)ang_vel_dot);
-
+		printf("vel: %f\n", (double)_vel);
 		printf("vel_dot: %f\n", (double)vel_dot);
 		// printf("vel: %f\n", (double)_vel);
 
 		printf("\n");
 	}
 
-	return output;
+	return output / _max_speed;
 }
 
 

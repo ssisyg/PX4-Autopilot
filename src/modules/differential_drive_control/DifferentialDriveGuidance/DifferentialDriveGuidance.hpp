@@ -62,6 +62,9 @@ public:
 	float 	computeBearing(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint);
 	float 	normalizeAngle(float angle);
 
+	float setMaxSpeed(float max_speed) { return _max_speed = max_speed; }
+	float setMaxAngularVelocity(float max_angular_velocity) { return _max_angular_velocity = max_angular_velocity; }
+
 private:
 
 	// Input & Output (Don't really need input tbh, but lets see)
@@ -70,6 +73,9 @@ private:
 
 	float _vel{0.0f};
 	float _ang_vel{0.0f};
+
+	float _max_speed{0.0f};
+	float _max_angular_velocity{0.0f};
 
 	VelocitySmoothing _forwards_velocity_smoothing;
 	PositionSmoothing _position_smoothing;
@@ -83,8 +89,6 @@ private:
 	int buffer_index;
 
 	DEFINE_PARAMETERS(
-		(ParamFloat<px4::params::RDD_MAX_SPEED>) _param_rdd_max_speed,
-		(ParamFloat<px4::params::RDD_MAX_ANG_VEL>) _param_rdd_max_angular_velocity,
 		(ParamFloat<px4::params::RDD_P_YAW_RATE>) _param_rdd_p_gain_yaw_rate,
 		(ParamFloat<px4::params::RDD_I_YAW_RATE>) _param_rdd_d_gain_yaw_rate,
 		(ParamFloat<px4::params::RDD_D_YAW_RATE>) _param_rdd_i_gain_yaw_rate,
