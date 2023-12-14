@@ -59,8 +59,11 @@ void DifferentialDriveControl::updateParams()
 	_max_angular_velocity = _max_speed / (_param_rdd_wheel_base.get() / 2.f);
 
 	_differential_drive_kinematics.setWheelBase(_param_rdd_wheel_base.get());
+	printf("max speed: %f\n", (double)_max_speed);
 	_differential_drive_kinematics.setMaxSpeed(_max_speed);
+	_differential_guidance_controller.setMaxSpeed(_max_speed);
 	_differential_drive_kinematics.setMaxAngularVelocity(_max_angular_velocity);
+	_differential_guidance_controller.setMaxAngularVelocity(_max_angular_velocity);
 }
 
 void DifferentialDriveControl::Run()
@@ -87,7 +90,7 @@ void DifferentialDriveControl::Run()
 
 		if (_vehicle_control_mode_sub.copy(&vehicle_control_mode)) {
 			_armed = vehicle_control_mode.flag_armed;
-			_manual_driving = vehicle_control_mode.flag_control_manual_enabled; // change this when more modes are supported
+			_manual_driving = vehicle_control_mode.flag_control_manual_enabled;
 			_mission_driving = vehicle_control_mode.flag_control_auto_enabled;
 		}
 	}
@@ -126,26 +129,13 @@ void DifferentialDriveControl::Run()
 				_differential_drive_setpoint_pub.publish(_differential_drive_setpoint);
 			}
 		}
-	}
 
-	if (_mission_driving && _armed) {
+	} else if (_mission_driving) {
 		// Mission mode
 		// directly receive setpoints from the guidance library
 		matrix::Vector2d global_position(_global_pos.lat, _global_pos.lon);
 		matrix::Vector2d current_waypoint(_pos_sp_triplet.current.lat, _pos_sp_triplet.current.lon);
 		matrix::Vector2d next_waypoint(_pos_sp_triplet.next.lat, _pos_sp_triplet.next.lon);
-
-		// edge case when system is initialized and there is no previous waypoint
-		if (!PX4_ISFINITE(_pos_sp_triplet.previous.lat) && !_first_waypoint_intialized) {
-			_previous_waypoint(0) = global_position(0);
-			_previous_waypoint(1) = global_position(1);
-			_first_waypoint_intialized = true;
-			printf("yeehaw\n");
-
-		} else if (PX4_ISFINITE(_pos_sp_triplet.previous.lat)) {
-			_previous_waypoint(0) = _pos_sp_triplet.previous.lat;
-			_previous_waypoint(1) = _pos_sp_triplet.previous.lon;
-		}
 
 		const float vehicle_yaw = matrix::Eulerf(matrix::Quatf(_vehicle_attitude.q)).psi();
 
@@ -155,15 +145,13 @@ void DifferentialDriveControl::Run()
 		matrix::Vector2f ground_speed_2d(ground_speed);
 		// Velocity in body frame
 		const Dcmf R_to_body(Quatf(_vehicle_attitude.q).inversed());
-		const Vector3f vel = R_to_body * Vector3f(ground_speed(0), ground_speed(1), ground_speed(2));
+		const Vector3f velocity = R_to_body * Vector3f(ground_speed(0), ground_speed(1), ground_speed(2));
+		const float x_vel = velocity(0);
 
-		const float x_vel = vel(0);
-
-		matrix::Vector2d guidance_output =
+		matrix::Vector2f guidance_output =
 			_differential_guidance_controller.computeGuidance(
 				global_position,
 				current_waypoint,
-				_previous_waypoint,
 				next_waypoint,
 				vehicle_yaw,
 				x_vel,
@@ -180,14 +168,10 @@ void DifferentialDriveControl::Run()
 
 	_differential_drive_setpoint_sub.update(&_differential_drive_setpoint);
 
-	// publish data to actuator_motors (output module)
 	// get the wheel speeds from the inverse kinematics class (DifferentialDriveKinematics)
 	Vector2f wheel_speeds = _differential_drive_kinematics.computeInverseKinematics(
 					_differential_drive_setpoint.speed,
 					_differential_drive_setpoint.yaw_rate);
-
-	printf("wheel speeds: %f, %f\n", (double)wheel_speeds(0), (double)wheel_speeds(1));
-	printf("yaw rate: %f\n", (double)_differential_drive_setpoint.yaw_rate);
 
 	// Check if max_angular_wheel_speed is zero
 	const bool setpoint_timeout = (_differential_drive_setpoint.timestamp + 100_ms) < now;

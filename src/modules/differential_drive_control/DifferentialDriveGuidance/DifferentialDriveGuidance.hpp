@@ -43,10 +43,14 @@
 #include <lib/motion_planning/PositionSmoothing.hpp>
 #include <lib/motion_planning/VelocitySmoothing.hpp>
 
-// #include "rover_drive_control_pid.hpp"
 #include <lib/pid/pid.h>
 
 
+enum class GuidanceState {
+	TURNING,
+	DRIVING,
+	GOAL_REACHED
+};
 
 class DifferentialDriveGuidance : public ModuleParams
 {
@@ -54,25 +58,20 @@ public:
 	DifferentialDriveGuidance(ModuleParams *parent);
 	~DifferentialDriveGuidance() = default;
 
-	matrix::Vector2d 	computeGuidance(const matrix::Vector2d &current_pos, const matrix::Vector2d &current_waypoint,
-						const matrix::Vector2d &previous_waypoint, const matrix::Vector2d &next_waypoint, float vehicle_yaw,
-						float body_velocity, float angular_velocity, float dt);
-	float 	computeAdvancedBearing(const matrix::Vector2d &current_pos, const matrix::Vector2d &waypoint,
-				       const matrix::Vector2d &previous_waypoint, float distance_to_next_wp);
-	float 	computeBearing(const matrix::Vector2d &current_pos, const matrix::Vector2d &waypoint);
-	float 	normalizeAngle(float angle);
+	matrix::Vector2f computeGuidance(const matrix::Vector2d &current_pos, const matrix::Vector2d &current_waypoint,
+					 const matrix::Vector2d &next_waypoint, float vehicle_yaw,
+					 float body_velocity, float angular_velocity, float dt);
+	float normalizeAngle(float angle);
 
 	float setMaxSpeed(float max_speed) { return _max_speed = max_speed; }
 	float setMaxAngularVelocity(float max_angular_velocity) { return _max_angular_velocity = max_angular_velocity; }
+
 
 protected:
 	void updateParams() override;
 
 private:
-
-	// Input & Output (Don't really need input tbh, but lets see)
-	matrix::Vector2d _input{0.0f, 0.0f};  // input_[0] -> Vx [m/s], input_[1] -> Omega [rad/s]
-	matrix::Vector2d _output{0.0f, 0.0f}; // _output[0] -> Right Motor [rad/s], _output[1] -> Left Motor [rad/s]
+	GuidanceState currentState;
 
 	float _vel{0.0f};
 	float _ang_vel{0.0f};
@@ -80,7 +79,6 @@ private:
 	float _max_speed{0.0f};
 	float _max_angular_velocity{0.0f};
 
-	bool _new_waypoint{false};
 	matrix::Vector2d _next_waypoint{0.0f, 0.0f};
 
 	VelocitySmoothing _forwards_velocity_smoothing;
@@ -88,11 +86,6 @@ private:
 
 	PID_t yaw_rate_pid;
 	PID_t velocity_pid;
-
-	static const int BUFFER_SIZE = 20;  // Adjust the size as needed
-	float vel_buffer[BUFFER_SIZE];
-	float ang_vel_dot_buffer[BUFFER_SIZE];
-	int buffer_index;
 
 	DEFINE_PARAMETERS(
 		(ParamFloat<px4::params::RDD_P_YAW_RATE>) _param_rdd_p_gain_yaw_rate,
