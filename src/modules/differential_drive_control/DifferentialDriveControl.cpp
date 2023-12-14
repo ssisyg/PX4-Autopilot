@@ -131,9 +131,9 @@ void DifferentialDriveControl::Run()
 	if (_mission_driving && _armed) {
 		// Mission mode
 		// directly receive setpoints from the guidance library
-		matrix::Vector2f global_position(_global_pos.lat, _global_pos.lon);
-		matrix::Vector2f current_waypoint(_pos_sp_triplet.current.lat, _pos_sp_triplet.current.lon);
-		matrix::Vector2f next_waypoint(_pos_sp_triplet.next.lat, _pos_sp_triplet.next.lon);
+		matrix::Vector2d global_position(_global_pos.lat, _global_pos.lon);
+		matrix::Vector2d current_waypoint(_pos_sp_triplet.current.lat, _pos_sp_triplet.current.lon);
+		matrix::Vector2d next_waypoint(_pos_sp_triplet.next.lat, _pos_sp_triplet.next.lon);
 
 		// edge case when system is initialized and there is no previous waypoint
 		if (!PX4_ISFINITE(_pos_sp_triplet.previous.lat) && !_first_waypoint_intialized) {
@@ -159,7 +159,7 @@ void DifferentialDriveControl::Run()
 
 		const float x_vel = vel(0);
 
-		matrix::Vector2f guidance_output =
+		matrix::Vector2d guidance_output =
 			_differential_guidance_controller.computeGuidance(
 				global_position,
 				current_waypoint,

@@ -54,28 +54,34 @@ public:
 	DifferentialDriveGuidance(ModuleParams *parent);
 	~DifferentialDriveGuidance() = default;
 
-	matrix::Vector2f 	computeGuidance(const matrix::Vector2f &current_pos, const matrix::Vector2f &current_waypoint,
-						const matrix::Vector2f &previous_waypoint, const matrix::Vector2f &next_waypoint, float vehicle_yaw,
+	matrix::Vector2d 	computeGuidance(const matrix::Vector2d &current_pos, const matrix::Vector2d &current_waypoint,
+						const matrix::Vector2d &previous_waypoint, const matrix::Vector2d &next_waypoint, float vehicle_yaw,
 						float body_velocity, float angular_velocity, float dt);
-	float 	computeAdvancedBearing(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint,
-				       const matrix::Vector2f &previous_waypoint, float distance_to_next_wp);
-	float 	computeBearing(const matrix::Vector2f &current_pos, const matrix::Vector2f &waypoint);
+	float 	computeAdvancedBearing(const matrix::Vector2d &current_pos, const matrix::Vector2d &waypoint,
+				       const matrix::Vector2d &previous_waypoint, float distance_to_next_wp);
+	float 	computeBearing(const matrix::Vector2d &current_pos, const matrix::Vector2d &waypoint);
 	float 	normalizeAngle(float angle);
 
 	float setMaxSpeed(float max_speed) { return _max_speed = max_speed; }
 	float setMaxAngularVelocity(float max_angular_velocity) { return _max_angular_velocity = max_angular_velocity; }
 
+protected:
+	void updateParams() override;
+
 private:
 
 	// Input & Output (Don't really need input tbh, but lets see)
-	matrix::Vector2f _input{0.0f, 0.0f};  // input_[0] -> Vx [m/s], input_[1] -> Omega [rad/s]
-	matrix::Vector2f _output{0.0f, 0.0f}; // _output[0] -> Right Motor [rad/s], _output[1] -> Left Motor [rad/s]
+	matrix::Vector2d _input{0.0f, 0.0f};  // input_[0] -> Vx [m/s], input_[1] -> Omega [rad/s]
+	matrix::Vector2d _output{0.0f, 0.0f}; // _output[0] -> Right Motor [rad/s], _output[1] -> Left Motor [rad/s]
 
 	float _vel{0.0f};
 	float _ang_vel{0.0f};
 
 	float _max_speed{0.0f};
 	float _max_angular_velocity{0.0f};
+
+	bool _new_waypoint{false};
+	matrix::Vector2d _next_waypoint{0.0f, 0.0f};
 
 	VelocitySmoothing _forwards_velocity_smoothing;
 	PositionSmoothing _position_smoothing;
@@ -93,8 +99,8 @@ private:
 		(ParamFloat<px4::params::RDD_I_YAW_RATE>) _param_rdd_d_gain_yaw_rate,
 		(ParamFloat<px4::params::RDD_D_YAW_RATE>) _param_rdd_i_gain_yaw_rate,
 		(ParamFloat<px4::params::RDD_P_SPEED>) _param_rdd_p_gain_speed,
-		(ParamFloat<px4::params::RDD_I_SPEED>) _param_rdd_d_gain_speed,
-		(ParamFloat<px4::params::RDD_D_SPEED>) _param_rdd_i_gain_speed,
+		(ParamFloat<px4::params::RDD_I_SPEED>) _param_rdd_i_gain_speed,
+		(ParamFloat<px4::params::RDD_D_SPEED>) _param_rdd_d_gain_speed,
 		(ParamFloat<px4::params::NAV_ACC_RAD>) _param_rdd_accepted_waypoint_radius,
 		(ParamFloat<px4::params::RDD_VEL_ALGN>) _param_rdd_velocity_alignment_subtraction,
 		(ParamFloat<px4::params::RDD_WAYPT_OFST>) _param_rdd_waypoint_offset,

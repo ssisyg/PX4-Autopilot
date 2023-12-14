@@ -123,7 +123,7 @@ private:
 	hrt_abstime _time_stamp_last{}; /**< time stamp when task was last updated */
 	static constexpr uint64_t _timeout = 500000; /**< maximal time in us before a loop or data times out */
 
-	matrix::Vector2f _previous_waypoint = {0.f, 0.f};
+	matrix::Vector2d _previous_waypoint = {0.f, 0.f};
 
 	DifferentialDriveKinematics _differential_drive_kinematics;
 	DifferentialDriveGuidance _differential_guidance_controller;
