@@ -8,16 +8,16 @@ DifferentialDriveGuidance::DifferentialDriveGuidance(ModuleParams *parent) : Mod
 	pid_init(&velocity_pid, PID_MODE_DERIVATIV_NONE, 0.001f);
 }
 
-matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector2d &current_pos,
+matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector2d &global_pos,
 		const matrix::Vector2d &current_waypoint, const matrix::Vector2d &next_waypoint,
 		float vehicle_yaw, float body_velocity, float angular_velocity, float dt)
 {
-	float distance_to_next_wp = get_distance_to_next_waypoint(current_pos(0), current_pos(1), current_waypoint(0),
+	float distance_to_next_wp = get_distance_to_next_waypoint(global_pos(0), global_pos(1), current_waypoint(0),
 				    current_waypoint(1));
 
-	float desired_heading = get_bearing_to_next_waypoint(current_pos(0), current_pos(1), current_waypoint(0),
+	float desired_heading = get_bearing_to_next_waypoint(global_pos(0), global_pos(1), current_waypoint(0),
 				current_waypoint(1));
-	float heading_error = normalizeAngle(desired_heading - vehicle_yaw);
+	float heading_error = matrix::wrap_pi(desired_heading - vehicle_yaw);
 
 	const float max_velocity = math::trajectory::computeMaxSpeedFromDistance(_param_rdd_max_jerk.get(),
 				   _param_rdd_max_accel.get(), distance_to_next_wp, 0.0f);
@@ -25,13 +25,7 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 	_forwards_velocity_smoothing.updateDurations(max_velocity);
 	_forwards_velocity_smoothing.updateTraj(dt);
 
-	printf("distance_to_next_wp: %f\n", (double)distance_to_next_wp);
-	printf("_param_rdd_accepted_waypoint_radius: %f\n", (double)_param_rdd_accepted_waypoint_radius.get());
-	printf("current_waypoint: %f, %f\n", (double)current_waypoint(0), (double)current_waypoint(1));
-	printf("next_waypoint: %f, %f\n", (double)next_waypoint(0), (double)next_waypoint(1));
-
-	if ((current_waypoint == next_waypoint) && distance_to_next_wp < _param_rdd_accepted_waypoint_radius.get() + 1.f) {
-		printf("Goal reached\n");
+	if ((current_waypoint == next_waypoint) && distance_to_next_wp < _param_rdd_accepted_waypoint_radius.get()) {
 		currentState = GuidanceState::GOAL_REACHED;
 
 	} else if (_next_waypoint != next_waypoint) {
@@ -60,31 +54,25 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 		break;
 
 	case GuidanceState::GOAL_REACHED:
+		// temporary till I find a better way to stop the vehicle
 		desired_speed = 0.f;
+		body_velocity = 0.f;
 		heading_error = 0.f;
-		printf("Goal reached\n");
+		angular_velocity = 0.f;
+		_desired_angular_velocity = 0.f;
 		break;
 	}
 
-	float vel_dot = pid_calculate(&velocity_pid, desired_speed, body_velocity, 0, dt);
-	float ang_vel_dot = pid_calculate(&yaw_rate_pid, heading_error, angular_velocity, 0, dt);
+	float speed_pid = pid_calculate(&velocity_pid, desired_speed, body_velocity, 0, dt);
+	float angular_velocity_pid = pid_calculate(&yaw_rate_pid, heading_error, angular_velocity, 0, dt);
 
-	desired_speed += vel_dot;
-	_ang_vel += ang_vel_dot;
+	desired_speed += speed_pid;
+	_desired_angular_velocity += angular_velocity_pid;
 
 	output(0) = desired_speed;
-	output(1) = _ang_vel;
+	output(1) = _desired_angular_velocity;
 
 	return output / _max_speed;
-}
-
-float DifferentialDriveGuidance::normalizeAngle(float angle)
-{
-	while (angle > M_PIf) { angle -= 2.0f * M_PIf; }
-
-	while (angle < -M_PIf) { angle += 2.0f * M_PIf; }
-
-	return angle;
 }
 
 void DifferentialDriveGuidance::updateParams()

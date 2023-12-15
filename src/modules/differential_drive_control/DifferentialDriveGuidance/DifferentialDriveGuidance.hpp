@@ -45,47 +45,84 @@
 
 #include <lib/pid/pid.h>
 
-
+/**
+ * @brief Enum class for the different states of guidance.
+ */
 enum class GuidanceState {
-	TURNING,
-	DRIVING,
-	GOAL_REACHED
+	TURNING, ///< The vehicle is currently turning.
+	DRIVING, ///< The vehicle is currently driving straight.
+	GOAL_REACHED ///< The vehicle has reached its goal.
 };
 
+/**
+ * @brief Class for differential drive guidance.
+ */
 class DifferentialDriveGuidance : public ModuleParams
 {
 public:
+	/**
+	 * @brief Constructor for DifferentialDriveGuidance.
+	 * @param parent The parent ModuleParams object.
+	 */
 	DifferentialDriveGuidance(ModuleParams *parent);
+
+	/**
+	 * @brief Default destructor.
+	 */
 	~DifferentialDriveGuidance() = default;
 
-	matrix::Vector2f computeGuidance(const matrix::Vector2d &current_pos, const matrix::Vector2d &current_waypoint,
+	/**
+	 * @brief Compute guidance for the vehicle.
+	 * @param global_pos The global position of the vehicle.
+	 * @param current_waypoint The current waypoint the vehicle is heading towards.
+	 * @param next_waypoint The next waypoint the vehicle will head towards after reaching the current waypoint.
+	 * @param vehicle_yaw The yaw orientation of the vehicle.
+	 * @param body_velocity The velocity of the vehicle.
+	 * @param angular_velocity The angular velocity of the vehicle.
+	 * @param dt The time step.
+	 * @return A 2D vector containing the computed guidance.
+	 */
+	matrix::Vector2f computeGuidance(const matrix::Vector2d &global_pos, const matrix::Vector2d &current_waypoint,
 					 const matrix::Vector2d &next_waypoint, float vehicle_yaw,
 					 float body_velocity, float angular_velocity, float dt);
-	float normalizeAngle(float angle);
 
+	/**
+	 * @brief Set the maximum speed for the vehicle.
+	 * @param max_speed The maximum speed.
+	 * @return The set maximum speed.
+	 */
 	float setMaxSpeed(float max_speed) { return _max_speed = max_speed; }
+
+
+	/**
+	 * @brief Set the maximum angular velocity for the vehicle.
+	 * @param max_angular_velocity The maximum angular velocity.
+	 * @return The set maximum angular velocity.
+	 */
 	float setMaxAngularVelocity(float max_angular_velocity) { return _max_angular_velocity = max_angular_velocity; }
 
-
 protected:
+	/**
+	 * @brief Update the parameters of the module.
+	 */
 	void updateParams() override;
 
 private:
-	GuidanceState currentState;
+	GuidanceState currentState; ///< The current state of guidance.
 
-	float _vel{0.0f};
-	float _ang_vel{0.0f};
+	float _vel; ///< The current velocity.
+	float _desired_angular_velocity; ///< The desired angular velocity.
 
-	float _max_speed{0.0f};
-	float _max_angular_velocity{0.0f};
+	float _max_speed; ///< The maximum speed.
+	float _max_angular_velocity; ///< The maximum angular velocity.
 
-	matrix::Vector2d _next_waypoint{0.0f, 0.0f};
+	matrix::Vector2d _next_waypoint; ///< The next waypoint.
 
-	VelocitySmoothing _forwards_velocity_smoothing;
-	PositionSmoothing _position_smoothing;
+	VelocitySmoothing _forwards_velocity_smoothing; ///< The velocity smoothing for forward motion.
+	PositionSmoothing _position_smoothing; ///< The position smoothing.
 
-	PID_t yaw_rate_pid;
-	PID_t velocity_pid;
+	PID_t yaw_rate_pid; ///< The PID controller for yaw rate.
+	PID_t velocity_pid; ///< The PID controller for velocity.
 
 	DEFINE_PARAMETERS(
 		(ParamFloat<px4::params::RDD_P_YAW_RATE>) _param_rdd_p_gain_yaw_rate,
