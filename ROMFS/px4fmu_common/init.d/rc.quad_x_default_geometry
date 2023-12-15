@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Default gains for square quad motor geometry
+# Default square quadrotor X motor geometry
 #
 
 param set-default CA_ROTOR_COUNT 4

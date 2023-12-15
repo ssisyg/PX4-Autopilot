@@ -19,6 +19,12 @@
 . ${R}etc/init.d/rc.mc_defaults
 . ${R}etc/init.d/rc.quad_x_default_geometry
 
+# All propellers reverse turn direction to default
+param set-default CA_ROTOR0_KM -0.05
+param set-default CA_ROTOR1_KM -0.05
+param set-default CA_ROTOR2_KM 0.05
+param set-default CA_ROTOR3_KM 0.05
+
 param set-default CBRK_SUPPLY_CHK 894281
 
 param set-default IMU_GYRO_CUTOFF 100
