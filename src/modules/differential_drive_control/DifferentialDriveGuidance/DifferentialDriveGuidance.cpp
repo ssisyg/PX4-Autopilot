@@ -25,16 +25,22 @@ matrix::Vector2f DifferentialDriveGuidance::computeGuidance(const matrix::Vector
 	_forwards_velocity_smoothing.updateDurations(max_velocity);
 	_forwards_velocity_smoothing.updateTraj(dt);
 
-	if (_next_waypoint != next_waypoint) {
+	printf("distance_to_next_wp: %f\n", (double)distance_to_next_wp);
+	printf("_param_rdd_accepted_waypoint_radius: %f\n", (double)_param_rdd_accepted_waypoint_radius.get());
+	printf("current_waypoint: %f, %f\n", (double)current_waypoint(0), (double)current_waypoint(1));
+	printf("next_waypoint: %f, %f\n", (double)next_waypoint(0), (double)next_waypoint(1));
+
+	if ((current_waypoint == next_waypoint) && distance_to_next_wp < _param_rdd_accepted_waypoint_radius.get() + 1.f) {
+		printf("Goal reached\n");
+		currentState = GuidanceState::GOAL_REACHED;
+
+	} else if (_next_waypoint != next_waypoint) {
 		if (fabsf(heading_error) < 0.1f) {
 			currentState = GuidanceState::DRIVING;
 
 		} else {
 			currentState = GuidanceState::TURNING;
 		}
-
-	} else if ((current_waypoint == next_waypoint) && distance_to_next_wp < _param_rdd_accepted_waypoint_radius.get()) {
-		currentState = GuidanceState::GOAL_REACHED;
 
 	} else {
 		currentState = GuidanceState::DRIVING;
