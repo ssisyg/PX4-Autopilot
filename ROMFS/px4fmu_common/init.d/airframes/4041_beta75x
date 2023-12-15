@@ -17,6 +17,7 @@
 #
 
 . ${R}etc/init.d/rc.mc_defaults
+. ${R}etc/init.d/rc.quad_x_default_geometry
 
 param set-default CBRK_SUPPLY_CHK 894281
 
@@ -45,20 +46,6 @@ param set-default SYS_HAS_BARO 0
 param set-default SYS_HAS_MAG 0
 
 param set-default BAT1_N_CELLS 2
-
-param set-default CA_ROTOR_COUNT 4
-param set-default CA_ROTOR0_PX 0.03
-param set-default CA_ROTOR0_PY 0.03
-param set-default CA_ROTOR0_KM -0.05
-param set-default CA_ROTOR1_PX -0.03
-param set-default CA_ROTOR1_PY -0.03
-param set-default CA_ROTOR1_KM -0.05
-param set-default CA_ROTOR2_PX 0.03
-param set-default CA_ROTOR2_PY -0.03
-param set-default CA_ROTOR2_KM 0.05
-param set-default CA_ROTOR3_PX -0.03
-param set-default CA_ROTOR3_PY 0.03
-param set-default CA_ROTOR3_KM 0.05
 
 param set-default PWM_MAIN_FUNC1 104
 param set-default PWM_MAIN_FUNC2 101

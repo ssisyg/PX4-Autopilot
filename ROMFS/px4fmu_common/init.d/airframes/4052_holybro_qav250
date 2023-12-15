@@ -14,6 +14,7 @@
 #
 
 . ${R}etc/init.d/rc.mc_defaults
+. ${R}etc/init.d/rc.quad_x_default_geometry
 
 # The set does not include a battery, but most people will probably use 4S
 param set-default BAT1_N_CELLS 4
@@ -45,18 +46,6 @@ param set-default MPC_THR_MIN 0.05
 param set-default MPC_Z_VEL_I_ACC 1.7
 
 param set-default THR_MDL_FAC 0.3
-
-param set-default CA_ROTOR_COUNT 4
-param set-default CA_ROTOR0_PX 0.15
-param set-default CA_ROTOR0_PY 0.15
-param set-default CA_ROTOR1_PX -0.15
-param set-default CA_ROTOR1_PY -0.15
-param set-default CA_ROTOR2_PX 0.15
-param set-default CA_ROTOR2_PY -0.15
-param set-default CA_ROTOR2_KM -0.05
-param set-default CA_ROTOR3_PX -0.15
-param set-default CA_ROTOR3_PY 0.15
-param set-default CA_ROTOR3_KM -0.05
 
 param set-default PWM_MAIN_FUNC1 101
 param set-default PWM_MAIN_FUNC2 102

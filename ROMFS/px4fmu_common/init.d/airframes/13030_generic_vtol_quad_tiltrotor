@@ -13,26 +13,16 @@
 #
 
 . ${R}etc/init.d/rc.vtol_defaults
+. ${R}etc/init.d/rc.quad_x_default_geometry
 
 param set-default MAV_TYPE 21
 
 param set-default VT_TYPE 1
 
 param set-default CA_AIRFRAME 3
-param set-default CA_ROTOR_COUNT 4
-param set-default CA_ROTOR0_PX 0.15
-param set-default CA_ROTOR0_PY 0.15
 param set-default CA_ROTOR0_TILT 1
-param set-default CA_ROTOR1_PX -0.15
-param set-default CA_ROTOR1_PY -0.15
 param set-default CA_ROTOR1_TILT 2
-param set-default CA_ROTOR2_PX 0.15
-param set-default CA_ROTOR2_PY -0.15
-param set-default CA_ROTOR2_KM -0.05
 param set-default CA_ROTOR2_TILT 3
-param set-default CA_ROTOR3_PX -0.15
-param set-default CA_ROTOR3_PY 0.15
-param set-default CA_ROTOR3_KM -0.05
 param set-default CA_ROTOR3_TILT 4
 param set-default CA_SV_CS_COUNT 4
 param set-default CA_SV_CS0_TYPE 1
